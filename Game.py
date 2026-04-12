@@ -1,6 +1,7 @@
 # Game.py
 # Othello/Reversi game with a human player and an AI opponent using the Minimax algorithm.  
 import Agent
+import TerminalUI
 
 # The board is represented as an 8x8 grid, where each cell can be:
 # None (empty), True (Black piece), or False (White piece).
@@ -25,6 +26,12 @@ class Board:
         self.num_rows = rows
         self.num_cols = cols
 
+    # Create a deep copy of the board to prevent modifications to the original board during AI calculations
+    def copy(self):
+        new_board = Board(self.num_rows, self.num_cols)
+        new_board.board = [row[:] for row in self.board]  # Deep copy of the board
+        return new_board
+    
     # Get a list of valid moves for the given color
     def get_valid_moves(self, color):
         valid_moves = []
@@ -39,11 +46,6 @@ class Board:
                 if self.board[x][y] is None and self.is_valid_move(x, y, color):
                     valid_moves.append((x, y))
         return valid_moves
-    
-    # Utility function to print valid moves to the console
-    def print_valid_moves(self, valid_moves):
-        joined_moves = ",".join(f"({move[1]} {move[0]})" for move in valid_moves)  # Convert to (y, x) format for user-friendly display
-        print("Valid moves: " + joined_moves)
 
     # Check if placing a piece at (x, y) is a valid move for the given color
     def is_valid_move(self, x, y, color):
@@ -116,18 +118,12 @@ class Board:
                       
         return directions
     
-    # Print the board state to the console
-    def print_board(self):
-        print("  _" + "_".join(str(i) for i in range(self.num_cols)) + "_")
-        for y in range(self.num_rows):
-            piece_symbols = [".", "B", "W"]
-            print(f"{y} |" + " ".join(piece_symbols[0] if cell is None else piece_symbols[1] if cell else piece_symbols[2] for cell in self.board[y]))
-
     # Count the number of pieces on the board for each player
     def count_pieces(self):
         black_count = sum(row.count(True) for row in self.board)
         white_count = sum(row.count(False) for row in self.board)
         return black_count, white_count
+
 
 # The Game class manages the game loop and interactions between the human player and the AI opponent.
 # The human player will play as Black (True), and the AI will play as White (False).
@@ -135,83 +131,66 @@ class Board:
 class Game:
     # Initialize the game with a board and an agent
     def __init__(self):
+        self.ui = TerminalUI.TerminalUI()  # Create an instance of the TerminalUI class for displaying messages and valid moves
         self.board = Board()
-        self.agent = Agent.Agent(self.board)
+        self.agent = Agent.Agent(False)  # AI plays as White (False)
 
     # Print the current state of the board
     def print_board(self):
-        self.board.print_board()
+        self.ui.display_board(self.board)
 
     # Main game loop
     def play(self):
         current_color = True  # Black starts
         while True:
-            self.board.print_board()
+            self.ui.display_board(self.board)  # Print the board state at the beginning of each turn
             valid_moves = self.board.get_valid_moves(current_color)
             if not valid_moves:
                 print(f"{'Black' if current_color else 'White'} has no valid moves.")
                 # pass back to AI until both players have no valid moves left, then end the game
-            
+
             if current_color:  # Human player (Black)
-                if not self.player_move():
-                    continue  # If the player's move was invalid, prompt them to enter a move again
+                move = self.player_move()
+
             else:  # AI player (White)
-                self.ai_move()
-            
+                self.ai_move(self.board.copy()) # Pass a copy of the board to the AI to prevent it from modifying the actual game board during its calculations
+                  
             if self.check_game_over():
-                self.print_end_game()
+                self.end_game()
                 break
             
             current_color = not current_color  # Switch turns
+            
 
-    # Handle the player's move and return True if the move was successful, False otherwise
+    # Handle the player's move
     def player_move(self):
-        move = input("Enter your move (Black) (x y): ")
-        try:
-            y, x = map(int, move.split())
-            if (x, y) not in self.board.get_valid_moves(True):
-                print("Invalid move. Please choose a valid move from the list.")
-                self.board.print_valid_moves(self.board.get_valid_moves(True))
-                return False
-            self.board.make_move(x, y, True)
-            return True
-        except ValueError:
-            print("Invalid input format. Please enter two integers separated by a space.")
-            self.board.print_valid_moves(self.board.get_valid_moves(True))
-            return False
+        x, y = self.ui.get_player_input(self.board)
+        self.board.make_move(x, y, True)  # Player is always Black (True)
+        self.ui.display_move((x, y), True)  # Display the player's move in the UI
     
-    # Handle the AI's move and print it to the console
-    def ai_move(self):
-        move = self.agent.get_best_move(False)  # AI plays as White (False)
+    # Handle the AI's move
+    def ai_move(self, board):
+        move = self.agent.get_best_move(board.copy())  # AI plays as White (False)
         if move:
             self.board.make_move(move[0], move[1], False)
-            print(f"AI plays: ({move[1]} {move[0]})")  # Print move in (y, x) format due to user input format
+            self.ui.display_move(move, False)  # Display the AI's move in the UI
         else:
             print("AI has no valid moves.")
             # pass back to human player until both players have no valid moves left, then end the game
 
-    # After the game is over, print the final score and declare the winner
-    def print_final_score(self):
-        black_count, white_count = self.board.count_pieces()
-        print(f"Final Score - Black: {black_count}, White: {white_count}")
-        if black_count > white_count:
-            print("Black wins!")
-        elif white_count > black_count:
-            print("White wins!")
-        else:
-            print("It's a tie!")
-    
     # Check if the game is over (i.e., neither player has any valid moves left)
     def check_game_over(self):
         # The game is over if neither player has any valid moves left
         return not self.board.get_valid_moves(True) and not self.board.get_valid_moves(False)
     
     # If the game is over, print the final score and declare the winner
-    def print_end_game(self):
+    def end_game(self):
         # Print the final board state before declaring the winner
-        self.board.print_board()
-        print("Game over.")
-        self.print_final_score()
+        self.ui.display_board(self.board)
+        self.ui.display_message("Game over.")
+        black_score, white_score = self.board.count_pieces()
+        self.ui.display_score(black_score, white_score)
+        self.ui.display_winner(black_score, white_score)
 
 if __name__ == "__main__":
     game = Game()
