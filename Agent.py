@@ -98,7 +98,7 @@ class Agent:
         for row in range(8):
             for col in range(8):
                 tile = board[row][col]
-                if tile is self.color:
+                if tile == self.color:
                     score += self.board_weights[row][col]
                 elif tile == (not self.color):
                     score -= self.board_weights[row][col]
