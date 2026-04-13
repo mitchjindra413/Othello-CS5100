@@ -30,7 +30,7 @@ class TerminalUI:
 
     # Display the move made by the player or AI in the terminal
     def display_move(self, move, color):
-        print(f"{'Black' if color else 'White'} move: ({move[1]} {move[0]})")  # Print move in (y, x) format due to user input format
+        print(f"{'Black' if color else 'White'} move: ({move[0]} {move[1]})")
 
     # Get the player's move input from the terminal and validate it against the list of valid moves for the player.
     def get_player_input(self, board):
@@ -38,7 +38,7 @@ class TerminalUI:
         while not found_valid_move:
             move = input("Enter your move (Black) (x y): ")
             try:
-                y, x = map(int, move.split())
+                x, y = map(int, move.split())
                 if (x, y) not in board.get_valid_moves(True):
                     print("Invalid move.")
                     self.print_valid_moves(board, True)
@@ -52,5 +52,5 @@ class TerminalUI:
     # Utility function to print valid moves to the console
     def print_valid_moves(self, board, color=True):
         valid_moves = board.get_valid_moves(color)  # Get valid moves for the player (Black) by default
-        joined_moves = ",".join(f"({move[1]} {move[0]})" for move in valid_moves)  # Convert to (y, x) format for user-friendly display
+        joined_moves = ",".join(f"({move[0]} {move[1]})" for move in valid_moves)
         print("Valid moves: " + joined_moves)
