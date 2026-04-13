@@ -43,7 +43,7 @@ class Board:
                 # A move is valid if the cell is empty and placing a piece there would flip at least one of the opponent's pieces
                 # Note: we need to check if the cell is empty before checking if it's a valid move, 
                 # because the is_valid_move function assumes that the cell is empty and will not work correctly if the cell is already occupied.
-                if self.board[x][y] is None and self.is_valid_move(x, y, color):
+                if self.board[y][x] is None and self.is_valid_move(x, y, color):
                     valid_moves.append((x, y))
         return valid_moves
 
@@ -59,11 +59,11 @@ class Board:
             found_opponent = False
             
             # Move in the direction until we find a piece of the player's color or an empty cell
-            while 0 <= nx < self.num_rows and 0 <= ny < self.num_cols:
-                if self.board[nx][ny] is None:
+            while 0 <= nx < self.num_cols and 0 <= ny < self.num_rows:
+                if self.board[ny][nx] is None:
                     found_opponent = False
                     break
-                if self.board[nx][ny] == color:
+                if self.board[ny][nx] == color:
                     if found_opponent:
                         return True
                     break
@@ -82,7 +82,7 @@ class Board:
         # Place the piece on the board
         # Note: we need to place the piece before flipping the opponent's pieces, 
         # because the flipping logic relies on the presence of the player's piece on the board.
-        self.board[x][y] = color
+        self.board[y][x] = color
         
         # Flip opponent's pieces
         directions = self.possible_move_directions()
@@ -95,12 +95,12 @@ class Board:
             # Move in the direction until we find a piece of the player's color or an empty cell
             while 0 <= nx < 8 and 0 <= ny < 8:
                 # If we find an empty cell, we can't flip any pieces in this direction, so break out of the loop
-                if self.board[nx][ny] is None:
+                if self.board[ny][nx] is None:
                     break
                 # If we find a piece of the player's color, we can flip all the opponent's pieces in this direction, so break out of the loop
-                if self.board[nx][ny] == color:
+                if self.board[ny][nx] == color:
                     for px, py in pieces_to_flip:
-                        self.board[px][py] = color
+                        self.board[py][px] = color
                     break
                 # If we find an opponent's piece, add it to the list of pieces to flip and continue moving in the same direction
                 pieces_to_flip.append((nx, ny))
