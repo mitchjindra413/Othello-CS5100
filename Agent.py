@@ -25,22 +25,28 @@ class Agent:
         ]
         self.depth = depth
     
+    # Provides best move available to AI player using Alpha Beta Pruning
     def get_best_move(self, board: Board):
         _, move = self._alpha_beta(board, float("-inf"), float("inf"), self.color, self.depth)
         return move
     
+    # Alpha Beta Pruning algorithm to evaluate the game tree and find the best move for the AI player
     def _alpha_beta(self, board: Board, alpha: int, beta: int, player: bool, round: int) -> Tuple[int, Tuple[int, int]]:
+        # If we've reached the maximum depth or the game is over, evaluate the board state using the appropriate heuristic function based on the difficulty level
         if round == self.depth or board.check_game_over():
             if self.difficulty == AgentDifficulty.EASY:
-                return self._easy_heuristic(board)
-            else: return self._hard_heuristic(board)
+                return (self._easy_heuristic(board), None)
+            else: 
+                return (self._hard_heuristic(board), None)
 
         moves = board.get_valid_moves(player)
+        # If there are no valid moves for the current player, we need to pass the turn to the opponent and continue searching the game tree
         if not moves:
             eval, _ = self._alpha_beta(board, alpha, beta, not player, round - 1)
             return (eval, None)
 
         best_move = None
+        # If the current player is the AI player, we want to maximize the evaluation score, so we initialize max_eval to negative infinity and update it whenever we find a better move
         if player == self.color:
             max_eval = float("-inf")
             for move in moves:
@@ -53,10 +59,12 @@ class Agent:
                     best_move = move
                 
                 alpha = max(alpha, eval)
+                # If beta is less than or equal to alpha, we can stop searching the rest of the moves at this level because we know that the opponent will not allow us to reach better states
                 if beta <= alpha:
                     break
             return (max_eval, best_move)
         
+        # If the current player is the opponent, we want to minimize the evaluation score for the AI player, so we initialize min_eval to positive infinity and update it whenever we find a worse move for the AI player
         else:
             min_eval = float("inf")
             for move in moves:
@@ -69,10 +77,13 @@ class Agent:
                     best_move = move
 
                 beta = min(beta, eval)
+                # If beta is less than or equal to alpha, we can stop searching the rest of the moves at this level because we know that the opponent will not allow us to reach better states
                 if beta <= alpha:
                     break
             return (min_eval, best_move)
     
+    # The easy heuristic function counts the number of pieces for each player and returns the difference, 
+    # The AI player has positive score if they have more pieces and a negative score if the opponent has more pieces
     def _easy_heuristic(self, board: Board):
         black_count, white_count =  board.count_pieces()
         if self.color:
@@ -80,12 +91,14 @@ class Agent:
         else:
             return white_count - black_count
 
+    # The hard heuristic function uses a weighted evaluation of the board state, where each position on the board has a different weight based on its strategic importance
+    # The AI player gets a positive score for occupying high-weight positions and a negative score for occupying low-weight positions, while the opponent gets the opposite
     def _hard_heuristic(self, board: Board):
         score = 0
         for row in range(8):
             for col in range(8):
                 tile = board[row][col]
-                if tile == self.color:
+                if tile is self.color:
                     score += self.board_weights[row][col]
                 elif tile == (not self.color):
                     score -= self.board_weights[row][col]
