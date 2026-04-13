@@ -32,8 +32,8 @@ class Agent:
     def _alpha_beta(self, board: Board, alpha: int, beta: int, player: bool, round: int) -> Tuple[int, Tuple[int, int]]:
         if round == self.depth or board.check_game_over():
             if self.difficulty == AgentDifficulty.EASY:
-                return self._easy_heuristic()
-            else: return self._hard_heuristic()
+                return self._easy_heuristic(board)
+            else: return self._hard_heuristic(board)
 
         moves = board.get_valid_moves(player)
         if not moves:
