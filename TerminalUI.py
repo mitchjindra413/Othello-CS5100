@@ -1,12 +1,24 @@
 # TerminalUI.py
 # A view class for displaying the game board and messages in the terminal,
 # as well as getting input from the player.
-# It is used by the Game class.
+# It is used by the Game class for the user interface when the GraphicalUI is not available.
+# The board is an 8x8 grid, where each cell can be:
+# None (empty "."), True (Black piece "B"), or False (White piece "W").
 
 class TerminalUI:
     # Print the board state to the console
+    # Board representation:
+    # _ 0_1_2_3_4_5_6_7_
+    # 0 |. . . . . . . .
+    # 1 |. . . . . . . .
+    # 2 |. . . . . . . .
+    # 3 |. . . W B . . .
+    # 4 |. . . B W . . .
+    # 5 |. . . . . . . .
+    # 6 |. . . . . . . .
+    # 7 |. . . . . . . .
     def display_board(self, board):
-        print("  _" + "_".join(str(i) for i in range(board.num_cols)) + "_")
+        print("  _" + "_".join(str(x) for x in range(board.num_cols)) + "_")
         for y in range(board.num_rows):
             piece_symbols = [".", "B", "W"]
             print(f"{y} |" + " ".join(piece_symbols[0] if cell is None else piece_symbols[1] if cell else piece_symbols[2] for cell in board.board[y]))
