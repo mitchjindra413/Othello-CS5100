@@ -3,14 +3,14 @@
 from Agent import Agent, AgentDifficulty
 from TerminalUI import TerminalUI
 from Board import Board
-
+from sys import argv
 
 # The Game class manages the game loop and interactions between the human player and the AI opponent.
 # The human player will play as Black (True), and the AI will play as White (False).
 # The game will continue until neither player has any valid moves left.
 class Game:
     # Initialize the game with a board and an agent
-    def __init__(self):
+    def __init__(self, player_color = True, depth = 4, difficulty = AgentDifficulty.EASY):
         try:
             from GraphicalUI import GraphicalUI
             self.ui = GraphicalUI()  # Create an instance of the GraphicalUI class for displaying messages and valid moves
@@ -20,7 +20,7 @@ class Game:
             print(f"Error initializing UI: {e}")
             self.ui = TerminalUI() # Fallback to TerminalUI if there is any error initializing the GraphicalUI
         self.board = Board()
-        self.agent = Agent(color=False, difficulty=AgentDifficulty.EASY)  # AI plays as White (False)
+        self.agent = Agent(not player_color, depth, difficulty)  # AI plays as White (False)
 
     # Print the current state of the board
     def print_board(self):
@@ -72,5 +72,29 @@ class Game:
         self.ui.display_end_game(self.board, black_score, white_score)
 
 if __name__ == "__main__":
-    game = Game()
+    difficulty = AgentDifficulty.EASY
+    depth = 4
+
+    if len(argv) == 2:
+        arg_difficulty = argv[1].lower()
+        match arg_difficulty:
+            case "easy":
+                difficulty = AgentDifficulty.EASY
+            case "hard":
+                difficulty = AgentDifficulty.HARD
+            case _:
+                difficulty = AgentDifficulty.EASY
+    if len(argv) == 3:
+        depth = int(argv[2])
+
+    print(r"""   ____  _   _          _ _       
+  / __ \| | | |        | | |      
+ | |  | | |_| |__   ___| | | ___  
+ | |  | | __| '_ \ / _ \ | |/ _ \ 
+ | |__| | |_| | | |  __/ | | (_) |
+  \____/ \__|_| |_|\___|_|_|\___/ 
+                                  """)
+
+    print(f"Mode: {difficulty}, Depth: {depth} ")
+    game = Game(depth = depth, difficulty = difficulty)
     game.play()

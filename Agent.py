@@ -1,6 +1,4 @@
 # Agent.py
-from signal import alarm
-
 from Board import Board
 from enum import Enum
 from typing import Tuple
@@ -98,13 +96,13 @@ class Agent:
     # The AI player gets a positive score for occupying high-weight positions and a negative score for occupying low-weight positions, while the opponent gets the opposite
     def _hard_heuristic(self, board: Board):
         score = 0
-        for row in range(8):
-            for col in range(8):
-                tile = board[row][col]
+        for y in range(8):
+            for x in range(8):
+                tile = board.board[y][x]
                 if tile == self.color:
-                    score += self.board_weights[row][col]
+                    score += self.board_weights[y][x]
                 elif tile == (not self.color):
-                    score -= self.board_weights[row][col]
+                    score -= self.board_weights[y][x]
                     
         return score
 
