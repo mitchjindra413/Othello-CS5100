@@ -10,7 +10,7 @@ class AgentDifficulty(Enum):
 
 # The Agent class represents the AI opponent in the Othello game.
 class Agent:
-    def __init__(self, depth: int, color = False, difficulty = AgentDifficulty.EASY):
+    def __init__(self, color = False, depth: int = 6, difficulty = AgentDifficulty.EASY):
         self.color = color  # AI plays as White (False) by default
         self.difficulty = difficulty
         self.board_weights = [
@@ -22,7 +22,10 @@ class Agent:
             [ 10,  -2,   5,   1,   1,   5,  -2,  10],
             [-20, -50,  -2,  -2,  -2,  -2, -50, -20],
             [100, -20,  10,   5,   5,  10, -20, 100]
-        ]
+        ]    
+        if self.difficulty == AgentDifficulty.HARD:
+            if depth < 6:
+                print("Warning: Depth of 6 or higher is recommended for HARD difficulty to provide a challenging opponent.")
         self.depth = depth
     
     # Provides best move available to AI player using Alpha Beta Pruning
@@ -33,7 +36,7 @@ class Agent:
     # Alpha Beta Pruning algorithm to evaluate the game tree and find the best move for the AI player
     def _alpha_beta(self, board: Board, alpha: int, beta: int, player: bool, round: int) -> Tuple[int, Tuple[int, int]]:
         # If we've reached the maximum depth or the game is over, evaluate the board state using the appropriate heuristic function based on the difficulty level
-        if round == self.depth or board.check_game_over():
+        if round == 0 or board.check_game_over():
             if self.difficulty == AgentDifficulty.EASY:
                 return (self._easy_heuristic(board), None)
             else: 

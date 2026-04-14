@@ -28,6 +28,13 @@ class TerminalUI:
         else:
             print("It's a tie!")
 
+    # Display the final board state and declare the winner at the end of the game
+    def display_end_game(self, board, black_score, white_score):
+        self.display_board(board)
+        self.display_message("Game over.")
+        self.display_score(black_score, white_score)
+        self.display_winner(black_score, white_score)
+
     # Display the move made by the player or AI in the terminal
     def display_move(self, move, color):
         print(f"{'Black' if color else 'White'} move: ({move[0]} {move[1]})")

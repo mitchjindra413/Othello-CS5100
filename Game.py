@@ -1,7 +1,7 @@
 # Game.py
 # Othello/Reversi game with a human player and an AI opponent using the Minimax algorithm.  
-from Agent import Agent
-import TerminalUI
+from Agent import Agent, AgentDifficulty
+from TerminalUI import TerminalUI
 from Board import Board
 
 
@@ -11,9 +11,16 @@ from Board import Board
 class Game:
     # Initialize the game with a board and an agent
     def __init__(self):
-        self.ui = TerminalUI.TerminalUI()  # Create an instance of the TerminalUI class for displaying messages and valid moves
+        try:
+            from GraphicalUI import GraphicalUI
+            self.ui = GraphicalUI()  # Create an instance of the GraphicalUI class for displaying messages and valid moves
+        except ModuleNotFoundError:
+            self.ui = TerminalUI()  # Fallback to TerminalUI if GraphicalUI is not available
+        except Exception as e:
+            print(f"Error initializing UI: {e}")
+            self.ui = TerminalUI() # Fallback to TerminalUI if there is any error initializing the GraphicalUI
         self.board = Board()
-        self.agent = Agent(False)  # AI plays as White (False)
+        self.agent = Agent(color=False, difficulty=AgentDifficulty.EASY)  # AI plays as White (False)
 
     # Print the current state of the board
     def print_board(self):
@@ -25,16 +32,15 @@ class Game:
         while True:
             self.ui.display_board(self.board)  # Print the board state at the beginning of each turn
             valid_moves = self.board.get_valid_moves(current_color)
-            if not valid_moves:
+            if valid_moves:
+                if current_color:  # Human player (Black)
+                    move = self.player_move()
+                else:  # AI player (White)
+                    self.ai_move(self.board.copy()) # Pass a copy of the board to the AI to prevent it from modifying the actual game board during its calculations
+            else:
                 print(f"{'Black' if current_color else 'White'} has no valid moves.")
-                # pass back to AI until both players have no valid moves left, then end the game
-
-            if current_color:  # Human player (Black)
-                move = self.player_move()
-
-            else:  # AI player (White)
-                self.ai_move(self.board.copy()) # Pass a copy of the board to the AI to prevent it from modifying the actual game board during its calculations
-                  
+                # pass back to other player until both players have no valid moves left, then end the game
+         
             if self.board.check_game_over():
                 self.end_game()
                 break
@@ -51,6 +57,7 @@ class Game:
     # Handle the AI's move
     def ai_move(self, board):
         move = self.agent.get_best_move(board.copy())  # AI plays as White (False)
+        print(f"AI selected move: {move}")  # Print the AI's selected move to the console for debugging purposes
         if move:
             self.board.make_move(move[0], move[1], False)
             self.ui.display_move(move, False)  # Display the AI's move in the UI
@@ -61,11 +68,8 @@ class Game:
     # If the game is over, print the final score and declare the winner
     def end_game(self):
         # Print the final board state before declaring the winner
-        self.ui.display_board(self.board)
-        self.ui.display_message("Game over.")
         black_score, white_score = self.board.count_pieces()
-        self.ui.display_score(black_score, white_score)
-        self.ui.display_winner(black_score, white_score)
+        self.ui.display_end_game(self.board, black_score, white_score)
 
 if __name__ == "__main__":
     game = Game()
