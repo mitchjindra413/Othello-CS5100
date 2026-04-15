@@ -51,36 +51,34 @@ class Agent:
         if player == self.color:
             max_eval = float("-inf")
             for move in moves:
-                new_state = board.copy()
-                new_state.make_move(move[0], move[1], player)
-                eval, _ =  self._alpha_beta(new_state, alpha, beta, not player, round - 1)
+                move_record = board.make_move(move[0], move[1], player)
+                eval, _ =  self._alpha_beta(board, alpha, beta, not player, round - 1)
+                board.undo_move(move_record)
 
                 if eval > max_eval: 
                     max_eval = eval
                     best_move = move
-                
+
+                if eval > beta:
+                    return (eval, best_move)
                 alpha = max(alpha, eval)
-                # If beta is less than or equal to alpha, we can stop searching the rest of the moves at this level because we know that the opponent will not allow us to reach better states
-                if beta <= alpha:
-                    break
             return (max_eval, best_move)
         
         # If the current player is the opponent, we want to minimize the evaluation score for the AI player, so we initialize min_eval to positive infinity and update it whenever we find a worse move for the AI player
         else:
             min_eval = float("inf")
             for move in moves:
-                new_state = board.copy()
-                new_state.make_move(move[0], move[1], player)
-                eval, _ = self._alpha_beta(new_state, alpha, beta, not player, round - 1)
+                move_record = board.make_move(move[0], move[1], player)
+                eval, _ = self._alpha_beta(board, alpha, beta, not player, round - 1)
+                board.undo_move(move_record)
 
                 if eval < min_eval:
                     min_eval = eval
                     best_move = move
 
+                if eval < alpha:
+                    return (min_eval, best_move)
                 beta = min(beta, eval)
-                # If beta is less than or equal to alpha, we can stop searching the rest of the moves at this level because we know that the opponent will not allow us to reach better states
-                if beta <= alpha:
-                    break
             return (min_eval, best_move)
     
     # The easy heuristic function counts the number of pieces for each player and returns the difference, 

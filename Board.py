@@ -62,10 +62,14 @@ class Board:
         return False
     
     # Make a move and flip the opponent's pieces
+    # Returns a move_record dict containing the move info and flipped pieces for undo operation
     def make_move(self, x, y, color):
-        # First, check if the move is valid. If it's not valid, return False.
+        # First, check if the move is valid. If it's not valid, return None.
         if not self.is_valid_move(x, y, color):
-            return False
+            return None
+        
+        # Create a record of this move for undo
+        move_record = {'x': x, 'y': y, 'color': color, 'flipped_pieces': []}
         
         # Place the piece on the board
         # Note: we need to place the piece before flipping the opponent's pieces, 
@@ -89,13 +93,31 @@ class Board:
                 if self.board[ny][nx] == color:
                     for px, py in pieces_to_flip:
                         self.board[py][px] = color
+                        move_record['flipped_pieces'].append((px, py))
                     break
                 # If we find an opponent's piece, add it to the list of pieces to flip and continue moving in the same direction
                 pieces_to_flip.append((nx, ny))
                 nx += dx
                 ny += dy
         
-        return True
+        return move_record
+    
+    # Undo the last move using the move_record from make_move
+    # This avoids the overhead of copying the board
+    def undo_move(self, move_record):
+        if move_record is None:
+            return
+        
+        x = move_record['x']
+        y = move_record['y']
+        
+        # Remove the placed piece
+        self.board[y][x] = None
+        
+        # Restore flipped pieces back to opponent's color
+        opponent_color = not move_record['color']
+        for px, py in move_record['flipped_pieces']:
+            self.board[py][px] = opponent_color
     
     # Utility function to return the possible move directions 
     # (8 directions: N, NE, E, SE, S, SW, W, NW)

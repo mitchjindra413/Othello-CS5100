@@ -36,7 +36,7 @@ class Game:
                 if current_color:  # Human player (Black)
                     move = self.player_move()
                 else:  # AI player (White)
-                    self.ai_move(self.board.copy()) # Pass a copy of the board to the AI to prevent it from modifying the actual game board during its calculations
+                    self.ai_move()  # Pass the board directly; undo/redo prevents modification
             else:
                 print(f"{'Black' if current_color else 'White'} has no valid moves.")
                 # pass back to other player until both players have no valid moves left, then end the game
@@ -55,8 +55,8 @@ class Game:
         self.ui.display_move((x, y), True)  # Display the player's move in the UI
     
     # Handle the AI's move
-    def ai_move(self, board):
-        move = self.agent.get_best_move(board.copy())  # AI plays as White (False)
+    def ai_move(self):
+        move = self.agent.get_best_move(self.board)  # AI plays as White (False)
         print(f"AI selected move: {move}")  # Print the AI's selected move to the console for debugging purposes
         if move:
             self.board.make_move(move[0], move[1], False)
