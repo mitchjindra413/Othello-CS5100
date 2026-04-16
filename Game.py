@@ -75,16 +75,19 @@ if __name__ == "__main__":
     difficulty = AgentDifficulty.EASY
     depth = 4
 
-    if len(argv) == 2:
+    if len(argv) >= 2:
         arg_difficulty = argv[1].lower()
+        print(arg_difficulty)
         match arg_difficulty:
             case "easy":
                 difficulty = AgentDifficulty.EASY
             case "hard":
                 difficulty = AgentDifficulty.HARD
+            case "expert":
+                difficulty = AgentDifficulty.EXPERT
             case _:
                 difficulty = AgentDifficulty.EASY
-    if len(argv) == 3:
+    if len(argv) >= 3:
         depth = int(argv[2])
 
     print(r"""   ____  _   _          _ _       
