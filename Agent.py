@@ -5,6 +5,7 @@ from typing import Tuple
 class AgentDifficulty(Enum):
     EASY = 0
     HARD = 1
+    EXPERT = 2
 
 # The Agent class represents the AI opponent in the Othello game.
 class Agent:
@@ -21,9 +22,6 @@ class Agent:
             [-20, -50,  -2,  -2,  -2,  -2, -50, -20],
             [100, -20,  10,   5,   5,  10, -20, 100]
         ]    
-        if self.difficulty == AgentDifficulty.HARD:
-            if depth < 6:
-                print("Warning: Depth of 6 or higher is recommended for HARD difficulty to provide a challenging opponent.")
         self.depth = depth
     
     # Provides best move available to AI player using Alpha Beta Pruning
@@ -37,8 +35,10 @@ class Agent:
         if round == 0 or board.check_game_over():
             if self.difficulty == AgentDifficulty.EASY:
                 return (self._easy_heuristic(board), None)
-            else: 
+            elif self.difficulty == AgentDifficulty.HARD: 
                 return (self._hard_heuristic(board), None)
+            else:
+                return (self._expert_heuristic(board), None)
 
         moves = board.get_valid_moves(player)
         # If there are no valid moves for the current player, we need to pass the turn to the opponent and continue searching the game tree
@@ -103,4 +103,51 @@ class Agent:
                     score -= self.board_weights[y][x]
                     
         return score
+    
+    def _expert_heuristic(self, board: Board):
+        # Modified from example: https://kartikkukreja.wordpress.com/2013/03/30/heuristic-function-for-reversiothello/
+        opponent_color = not self.color
+        
+        # 1. Positional Score (Static Weights)
+        score = self._hard_heuristic(board)
+        
+        # 2. Mobility (Number of legal moves)
+        # Having more options is critical in the mid-game
+        p_moves = len(board.get_valid_moves(self.color))
+        o_moves = len(board.get_valid_moves(opponent_color))
+        
+        if p_moves + o_moves != 0:
+            mobility = 100 * (p_moves - o_moves) / (p_moves + o_moves)
+        else:
+            mobility = 0
 
+        # 3. Corner Occupancy
+        # Corners are stable and cannot be flipped back
+        p_corners = 0
+        o_corners = 0
+        corners = [(0,0), (0,7), (7,0), (7,7)]
+        for x, y in corners:
+            if board.board[y][x] == self.color:
+                p_corners += 1
+            elif board.board[y][x] == opponent_color:
+                o_corners += 1
+        
+        if p_corners + o_corners != 0:
+            corner_score = 100 * (p_corners - o_corners) / (p_corners + o_corners)
+        else:
+            corner_score = 0
+
+        # 4. Tile Count
+        # Should only impact late game decision making processes
+        black_count, white_count = board.count_pieces()
+        p_count = black_count if self.color else white_count
+        o_count = white_count if self.color else black_count
+        
+        tile_score = 0
+        total_pieces = p_count + o_count
+        
+        if total_pieces > 50:
+            tile_score = 100 * (p_count - o_count) / total_pieces
+
+        # 5. Final Weighted Combination
+        return (score) + (15 * mobility) + (25 * corner_score) + (10 * tile_score)
